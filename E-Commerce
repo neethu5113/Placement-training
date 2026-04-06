@@ -1,0 +1,151 @@
+import java.util.*;
+import java.util.stream.*;
+
+// Product class (NOT public)
+class Product {
+    int id;
+    String name;
+    double price;
+    String category;
+
+    Product(int id, String name, double price, String category) {
+        this.id = id;
+        this.name = name;
+        this.price = price;
+        this.category = category;
+    }
+
+    public String toString() {
+        return id + " | " + name + " | ₹" + price + " | " + category;
+    }
+}
+
+// Cart class (NOT public)
+class Cart {
+    List<Product> cartItems = new ArrayList<>();
+
+    void addProduct(Product p) {
+        cartItems.add(p);
+        System.out.println(p.name + " added to cart.");
+    }
+
+    void removeProduct(int id) {
+        cartItems.removeIf(p -> p.id == id);
+        System.out.println("Product removed.");
+    }
+
+    void showCart() {
+        System.out.println("\n--- Cart ---");
+        cartItems.forEach(System.out::println);
+    }
+
+    double getTotal() {
+        return cartItems.stream()
+                .map(p -> p.price)
+                .reduce(0.0, (a, b) -> a + b);
+    }
+
+    double applyDiscount(double discount) {
+        double total = getTotal();
+        return total - (total * discount / 100);
+    }
+}
+
+// ONLY this class is public (IMPORTANT FIX)
+public class Main {
+    public static void main(String[] args) {
+
+        Scanner sc = new Scanner(System.in);
+
+        List<Product> products = Arrays.asList(
+                new Product(1, "Laptop", 60000, "Electronics"),
+                new Product(2, "Phone", 20000, "Electronics"),
+                new Product(3, "Shoes", 3000, "Fashion"),
+                new Product(4, "Watch", 2500, "Fashion"),
+                new Product(5, "Book", 500, "Education")
+        );
+
+        Cart cart = new Cart();
+        int choice;
+
+        do {
+            System.out.println("\n===== MENU =====");
+            System.out.println("1. View Products");
+            System.out.println("2. Filter by Category");
+            System.out.println("3. Sort by Price");
+            System.out.println("4. Add to Cart");
+            System.out.println("5. Remove from Cart");
+            System.out.println("6. View Cart");
+            System.out.println("7. Checkout");
+            System.out.println("0. Exit");
+
+            System.out.print("Enter choice: ");
+            choice = sc.nextInt();
+
+            switch (choice) {
+
+                case 1:
+                    products.forEach(System.out::println);
+                    break;
+
+                case 2:
+                    System.out.print("Enter category: ");
+                    String cat = sc.next();
+
+                    products.stream()
+                            .filter(p -> p.category.equalsIgnoreCase(cat))
+                            .forEach(System.out::println);
+                    break;
+
+                case 3:
+                    System.out.println("1. Asc  2. Desc");
+                    int sort = sc.nextInt();
+
+                    if (sort == 1) {
+                        products.stream()
+                                .sorted(Comparator.comparing(p -> p.price))
+                                .forEach(System.out::println);
+                    } else {
+                        products.stream()
+                                .sorted(Comparator.comparing((Product p) -> p.price).reversed())
+                                .forEach(System.out::println);
+                    }
+                    break;
+
+                case 4:
+                    System.out.print("Enter product ID: ");
+                    int id = sc.nextInt();
+
+                    products.stream()
+                            .filter(p -> p.id == id)
+                            .findFirst()
+                            .ifPresent(cart::addProduct);
+                    break;
+
+                case 5:
+                    System.out.print("Enter product ID: ");
+                    int rid = sc.nextInt();
+                    cart.removeProduct(rid);
+                    break;
+
+                case 6:
+                    cart.showCart();
+                    break;
+
+                case 7:
+                    double total = cart.getTotal();
+                    System.out.println("Total: ₹" + total);
+
+                    System.out.print("Enter discount %: ");
+                    double dis = sc.nextDouble();
+
+                    double finalAmount = cart.applyDiscount(dis);
+                    System.out.println("Final Amount: ₹" + finalAmount);
+                    break;
+            }
+
+        } while (choice != 0);
+
+        sc.close();
+    }
+}
